@@ -73,7 +73,8 @@ exports.env = createEnv({
    * `NEXT_PUBLIC_`.
    */
   client: {
-    // NEXT_PUBLIC_CLIENTVAR: z.string().min(1),
+    NEXT_PUBLIC_API_URL: z.string().url(),
+    NEXT_PUBLIC_WS_URL: z.string().url(),
   },
 
   /**
@@ -94,6 +95,8 @@ exports.env = createEnv({
     URL_EXPIRATION_TIME: process.env.URL_EXPIRATION_TIME,
     BUCKET_CORS_EXPIRATION_TIME: process.env.BUCKET_CORS_EXPIRATION_TIME,
     TYPING_TIMEOUT: process.env.TYPING_TIMEOUT,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

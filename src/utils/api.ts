@@ -8,19 +8,10 @@ import { loggerLink } from "@trpc/client/links/loggerLink";
 import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
 import { createTRPCNext } from "@trpc/next";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
+import { createWSClient, splitLink, wsLink } from "@trpc/client";
 import superjson from "superjson";
 import { type AppRouter } from "~/server/api/root";
-import { createWSClient, splitLink, wsLink } from "@trpc/client";
-
-const getBaseHTTPUrl = () => {
-  if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
-  return `http://localhost:${process.env.PORT ?? 3000}`;
-};
-
-const getBaseWsUrl = () => {
-  if (process.env.NEXT_PUBLIC_WS_URL) return process.env.NEXT_PUBLIC_WS_URL;
-  return `ws://localhost:${process.env.PORT ?? 3001}`;
-};
+import { env } from "~/env.cjs";
 
 /** A set of type-safe react-query hooks for your tRPC API. */
 export const api = createTRPCNext<AppRouter>({
@@ -50,11 +41,11 @@ export const api = createTRPCNext<AppRouter>({
           },
           true: wsLink<AppRouter>({
             client: createWSClient({
-              url: getBaseWsUrl(),
+              url: env.NEXT_PUBLIC_WS_URL,
             }),
           }),
           false: httpBatchLink({
-            url: `${getBaseHTTPUrl()}/api/trpc`,
+            url: `${env.NEXT_PUBLIC_API_URL}/api/trpc`,
             headers() {
               if (!ctx?.req?.headers) return {};
 
