@@ -46,7 +46,7 @@ export const api = createTRPCNext<AppRouter>({
         }),
         splitLink({
           condition() {
-            return typeof window !== "undefined";
+            return typeof window !== "undefined"; // Ubah dengan parameter op untuk menentukan apakah menggunakan ws atau http
           },
           true: wsLink<AppRouter>({
             client: createWSClient({
