@@ -8,10 +8,9 @@ import { loggerLink } from "@trpc/client/links/loggerLink";
 import { httpBatchLink } from "@trpc/client/links/httpBatchLink";
 import { createTRPCNext } from "@trpc/next";
 import { type inferRouterInputs, type inferRouterOutputs } from "@trpc/server";
-import { type NextPageContext } from "next";
 import superjson from "superjson";
 import { type AppRouter } from "~/server/api/root";
-import { createWSClient, wsLink } from "@trpc/client";
+import { createWSClient, splitLink, wsLink } from "@trpc/client";
 
 const getBaseHTTPUrl = () => {
   if (process.env.NEXT_PUBLIC_API_URL) return process.env.NEXT_PUBLIC_API_URL;
@@ -21,28 +20,6 @@ const getBaseHTTPUrl = () => {
 const getBaseWsUrl = () => {
   if (process.env.NEXT_PUBLIC_WS_URL) return process.env.NEXT_PUBLIC_WS_URL;
   return `ws://localhost:${process.env.PORT ?? 3001}`;
-};
-
-const getEndingLink = (ctx: NextPageContext | undefined) => {
-  if (typeof window === "undefined")
-    return httpBatchLink({
-      url: `${getBaseHTTPUrl()}/api/trpc`,
-      headers() {
-        if (!ctx?.req?.headers) return {};
-
-        // On ssr, forward client's headers to the server
-        return {
-          ...ctx.req.headers,
-          "x-ssr": "1",
-        };
-      },
-    });
-
-  return wsLink<AppRouter>({
-    client: createWSClient({
-      url: getBaseWsUrl(),
-    }),
-  });
 };
 
 /** A set of type-safe react-query hooks for your tRPC API. */
@@ -67,7 +44,28 @@ export const api = createTRPCNext<AppRouter>({
             process.env.NODE_ENV === "development" ||
             (opts.direction === "down" && opts.result instanceof Error),
         }),
-        getEndingLink(ctx),
+        splitLink({
+          condition() {
+            return typeof window !== "undefined";
+          },
+          true: wsLink<AppRouter>({
+            client: createWSClient({
+              url: getBaseWsUrl(),
+            }),
+          }),
+          false: httpBatchLink({
+            url: `${getBaseHTTPUrl()}/api/trpc`,
+            headers() {
+              if (!ctx?.req?.headers) return {};
+
+              // On ssr, forward client's headers to the server
+              return {
+                ...ctx.req.headers,
+                "x-ssr": "1",
+              };
+            },
+          }),
+        }),
       ],
     };
   },

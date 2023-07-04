@@ -22,6 +22,8 @@ import { tracer } from "~/server/tracer";
 import { bucket } from "~/server/bucket";
 import { eventEmitter } from "~/server/event-emitter";
 import { currentlyTyping } from "~/server/event-emitter/state";
+import { getServerAuthSession } from "~/server/auth";
+import { match } from "ts-pattern";
 
 /**
  * 1. CONTEXT
@@ -67,8 +69,7 @@ export const createTRPCContext = async (
     | CreateNextContextOptions
     | NodeHTTPCreateContextFnOptions<IncomingMessage, ws>
 ) => {
-  // Get the session from the server using the getSession function
-  // note: this is not as efficient as using getServerSession
+  // TODO: Gunakan getServerAuthSession ketika fetching untuk http request
   const session = await getSession(opts);
 
   return createInnerTRPCContext({
