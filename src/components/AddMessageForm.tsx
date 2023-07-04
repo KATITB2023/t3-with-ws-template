@@ -13,7 +13,7 @@ import { TRPCClientError } from "@trpc/client";
 import { P, match } from "ts-pattern";
 
 const schema = z.object({
-  text: z.string(),
+  text: z.string().min(1),
 });
 
 type FormValues = z.infer<typeof schema>;
@@ -61,7 +61,7 @@ const AddMessageForm: React.FC<{ onMessagePost: () => void }> = ({
     } catch (error) {
       if (!(error instanceof TRPCClientError)) throw error;
 
-      alert(error.message);
+      console.error(error.message);
     }
   };
 
@@ -142,7 +142,6 @@ const AddMessageForm: React.FC<{ onMessagePost: () => void }> = ({
           </div>
         </div>
       </fieldset>
-      {addPost.error && <p style={{ color: "red" }}>{addPost.error.message}</p>}
       {handleFormErrors(errors)}
     </form>
   );

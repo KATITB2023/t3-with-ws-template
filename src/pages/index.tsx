@@ -66,7 +66,7 @@ const Chat: NextPage = () => {
       addMessages([post]);
     },
     onError(err) {
-      alert(`Subscription error: ${err.message}`);
+      console.error(`Subscription error: ${err.message}`);
 
       // We might have missed a message - invalidate cache
       void utils.post.infinite.invalidate();
@@ -78,6 +78,9 @@ const Chat: NextPage = () => {
   api.post.whoIsTyping.useSubscription(undefined, {
     onData(data) {
       setCurrentlyTyping(data);
+    },
+    onError(err) {
+      console.error(`Subscription error: ${err.message}`);
     },
   });
 
