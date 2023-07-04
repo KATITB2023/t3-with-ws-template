@@ -1,5 +1,4 @@
 import { type Post } from "@prisma/client";
-import { TRPCError } from "@trpc/server";
 import { observable } from "@trpc/server/observable";
 import { z } from "zod";
 import {
@@ -16,21 +15,6 @@ export const postRouter = createTRPCRouter({
       })
     )
     .mutation(async ({ ctx, input }) => {
-      const user = await ctx.prisma.user.findUnique({
-        where: {
-          id: ctx.session.user.id,
-        },
-        select: {
-          nim: true,
-        },
-      });
-
-      if (!user)
-        throw new TRPCError({
-          code: "NOT_FOUND",
-          message: "User not found",
-        });
-
       const post = await ctx.prisma.post.create({
         data: {
           userId: ctx.session.user.id,
@@ -40,7 +24,7 @@ export const postRouter = createTRPCRouter({
 
       ctx.eventEmitter.emit("add", post);
 
-      delete ctx.currentlyTyping[user.nim];
+      delete ctx.currentlyTyping[ctx.session.user.id];
 
       ctx.eventEmitter.emit("isTypingUpdate");
 
