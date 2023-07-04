@@ -1,8 +1,9 @@
+import { schedule } from "node-cron";
 import { currentlyTyping } from "~/server/event-emitter/state";
 import { eventEmitter } from "~/server/event-emitter";
 import { env } from "~/env.cjs";
 
-export const currentlyTypingInterval = setInterval(() => {
+export const currentlyTypingSchedule = schedule("*/1 * * * * *", () => {
   let updated = false;
   const currentTime = new Date();
 
@@ -14,4 +15,4 @@ export const currentlyTypingInterval = setInterval(() => {
   }
 
   if (updated) eventEmitter.emit("isTypingUpdate");
-}, env.TYPING_TIMEOUT);
+});
