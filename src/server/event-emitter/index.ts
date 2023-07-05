@@ -1,10 +1,10 @@
-import { MyEventEmitter } from "~/server/event-emitter/configuration";
+import { RedisEventEmitter } from "~/server/event-emitter/configuration";
 import { env } from "~/env.cjs";
 
-const instantiateEventEmitter = () => new MyEventEmitter();
+const instantiateEventEmitter = () => new RedisEventEmitter();
 
 const globalForEventEmitter = globalThis as unknown as {
-  eventEmitter: MyEventEmitter | undefined;
+  eventEmitter: RedisEventEmitter | undefined;
 };
 
 export const eventEmitter =

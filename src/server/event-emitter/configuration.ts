@@ -7,7 +7,7 @@ interface MyEvents {
   isTypingUpdate: () => void;
 }
 
-export interface MyEventEmitter {
+interface IEventEmitter {
   on<TEv extends keyof MyEvents>(event: TEv, listener: MyEvents[TEv]): this;
   off<TEv extends keyof MyEvents>(event: TEv, listener: MyEvents[TEv]): this;
   once<TEv extends keyof MyEvents>(event: TEv, listener: MyEvents[TEv]): this;
@@ -17,4 +17,8 @@ export interface MyEventEmitter {
   ): boolean;
 }
 
-export class MyEventEmitter extends EventEmitter {}
+export class RedisEventEmitter extends EventEmitter implements IEventEmitter {
+  constructor() {
+    super();
+  }
+}
