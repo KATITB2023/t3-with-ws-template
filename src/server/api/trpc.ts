@@ -48,9 +48,9 @@ type CreateContextOptions = {
  */
 const createInnerTRPCContext = async (opts: CreateContextOptions) => {
   let resolvedEventEmitter = eventEmitter;
-  if (eventEmitter instanceof RedisEventEmitter) {
+  if (eventEmitter instanceof RedisEventEmitter)
     resolvedEventEmitter = await eventEmitter.loading;
-  }
+
   return {
     session: opts.session,
     prisma,

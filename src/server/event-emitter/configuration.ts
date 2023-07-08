@@ -1,6 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-ts-comment */
-/* eslint-disable @typescript-eslint/no-floating-promises */
-/* eslint-disable @typescript-eslint/ban-types */
 import { type Post } from "@prisma/client";
 import EventEmitter from "events";
 import type {
@@ -69,7 +66,8 @@ export class RedisEventEmitter<
 
     this.pub.on("error", onError);
     this.sub.on("error", onError);
-    this.sub.pSubscribe(
+
+    void this.sub.pSubscribe(
       this.prefix + "*",
       (messages: string, pattern: string) => {
         pattern = pattern.slice(this.prefix.length);
@@ -91,12 +89,8 @@ export class RedisEventEmitter<
     if (event === "newListener" || event === "error")
       return super.emit(event, ...args);
 
-    // @ts-ignore
-    this.pub.publish(
-      // @ts-ignore
-      this.prefix + event,
-      superjson.stringify(args)
-    );
+    void this.pub.publish(this.prefix + event, superjson.stringify(args));
+
     return true;
   }
 
