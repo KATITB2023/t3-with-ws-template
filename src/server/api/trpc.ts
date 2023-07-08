@@ -20,9 +20,9 @@ import { ZodError } from "zod";
 import { bucket } from "~/server/bucket";
 import { prisma } from "~/server/db";
 import { eventEmitter } from "~/server/event-emitter";
+import { RedisEventEmitter } from "~/server/event-emitter/configuration";
 import { currentlyTyping } from "~/server/event-emitter/state";
 import { tracer } from "~/server/tracer";
-import { RedisEventEmitter } from "../event-emitter/configuration";
 
 /**
  * 1. CONTEXT
