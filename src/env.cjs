@@ -65,6 +65,8 @@ exports.env = createEnv({
       // TYPING_TIMEOUT must be a positive integer
       z.number().int().positive().min(1)
     ),
+    // IF REDIS_URL is not set, will not using redis (memory cache)
+    REDIS_URL: z.string().url().optional(),
   },
 
   /**
@@ -97,6 +99,7 @@ exports.env = createEnv({
     TYPING_TIMEOUT: process.env.TYPING_TIMEOUT,
     NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
     NEXT_PUBLIC_WS_URL: process.env.NEXT_PUBLIC_WS_URL,
+    REDIS_URL: process.env.REDIS_URL,
   },
   /**
    * Run `build` or `dev` with `SKIP_ENV_VALIDATION` to skip env validation.

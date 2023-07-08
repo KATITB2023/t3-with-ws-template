@@ -17,11 +17,12 @@ import { getSession } from "next-auth/react";
 import superjson from "superjson";
 import type ws from "ws";
 import { ZodError } from "zod";
-import { prisma } from "~/server/db";
-import { tracer } from "~/server/tracer";
 import { bucket } from "~/server/bucket";
+import { prisma } from "~/server/db";
 import { eventEmitter } from "~/server/event-emitter";
 import { currentlyTyping } from "~/server/event-emitter/state";
+import { tracer } from "~/server/tracer";
+import { RedisEventEmitter } from "../event-emitter/configuration";
 
 /**
  * 1. CONTEXT
@@ -45,13 +46,17 @@ type CreateContextOptions = {
  *
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
-const createInnerTRPCContext = (opts: CreateContextOptions) => {
+const createInnerTRPCContext = async (opts: CreateContextOptions) => {
+  let resolvedEventEmitter = eventEmitter;
+  if (eventEmitter instanceof RedisEventEmitter) {
+    resolvedEventEmitter = await eventEmitter.loading;
+  }
   return {
     session: opts.session,
     prisma,
     tracer,
     bucket,
-    eventEmitter,
+    eventEmitter: resolvedEventEmitter,
     currentlyTyping,
   };
 };
@@ -69,7 +74,7 @@ export const createTRPCContext = async (
 ) => {
   const session = await getSession(opts);
 
-  return createInnerTRPCContext({
+  return await createInnerTRPCContext({
     session,
   });
 };
