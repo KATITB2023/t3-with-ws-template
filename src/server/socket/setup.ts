@@ -1,7 +1,10 @@
 import type { Post } from "@prisma/client";
+import { createAdapter } from "@socket.io/redis-streams-adapter";
 import type { Session } from "next-auth";
 import { getSession } from "next-auth/react";
+import { createClient } from "redis";
 import type { Server, Socket } from "socket.io";
+import { env } from "~/env.cjs";
 import { isTypingEvent, postEvent } from "./events/post";
 import type { ServerEventsResolver } from "./helper";
 import { setupScheduleSocket } from "./schedule";
@@ -54,4 +57,14 @@ export function setupSocket(io: SocketServer) {
   io.on("connection", (socket) => {
     serverEvents.forEach((event) => event(io, socket));
   });
+}
+
+export async function getAdapter() {
+  if (!env.REDIS_URL) return;
+  const redisClient = createClient({
+    url: env.REDIS_URL,
+  });
+
+  await redisClient.connect();
+  return createAdapter(redisClient);
 }

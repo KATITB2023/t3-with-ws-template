@@ -4,14 +4,14 @@ import { Server } from "socket.io";
 import { parse } from "url";
 import parser from "./socket/parser";
 import { currentlyTypingSchedule } from "./socket/schedule";
-import { setupSocket, type SocketServer } from "./socket/setup";
+import { getAdapter, setupSocket, type SocketServer } from "./socket/setup";
 
 const port = parseInt(process.env.PORT || "3000", 10);
 const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-void app.prepare().then(() => {
+void app.prepare().then(async () => {
   const server = http.createServer((req, res) => {
     const proto = req.headers["x-forwarded-proto"];
     if (proto && proto === "http") {
@@ -36,6 +36,7 @@ void app.prepare().then(() => {
 
   const io: SocketServer = new Server(server, {
     parser,
+    adapter: await getAdapter(),
   });
 
   setupSocket(io);

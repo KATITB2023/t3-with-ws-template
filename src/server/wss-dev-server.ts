@@ -3,38 +3,42 @@ import { env } from "~/env.cjs";
 import { currentlyTypingSchedule } from "~/server/socket/schedule";
 import parser from "./socket/parser";
 import type { SocketServer } from "./socket/setup";
-import { setupSocket } from "./socket/setup";
+import { getAdapter, setupSocket } from "./socket/setup";
 
-const port = parseInt(process.env.PORT || "3001", 10);
+// eslint-disable-next-line @typescript-eslint/no-floating-promises
+(async () => {
+  const port = parseInt(process.env.PORT || "3001", 10);
 
-const io: SocketServer = new Server(port, {
-  cors: {
-    origin: env.NEXT_PUBLIC_API_URL,
-    credentials: true,
-  },
-  parser,
-});
-
-io.on("connection", (socket) => {
-  console.log(`Connection (${io.engine.clientsCount})`);
-  socket.once("disconnect", () => {
-    console.log(`Connection (${io.engine.clientsCount})`);
+  const io: SocketServer = new Server(port, {
+    cors: {
+      origin: env.NEXT_PUBLIC_API_URL,
+      credentials: true,
+    },
+    parser,
+    adapter: await getAdapter(),
   });
-});
 
-setupSocket(io);
+  io.on("connection", (socket) => {
+    console.log(`Connection (${io.engine.clientsCount})`);
+    socket.once("disconnect", () => {
+      console.log(`Connection (${io.engine.clientsCount})`);
+    });
+  });
 
-// Start Schedule
-currentlyTypingSchedule.start();
+  setupSocket(io);
 
-console.log(`WebSocket Server listening on ws://localhost:${port}`);
+  // Start Schedule
+  currentlyTypingSchedule.start();
 
-process.on("SIGTERM", () => {
-  console.log("SIGTERM");
+  console.log(`WebSocket Server listening on ws://localhost:${port}`);
 
-  // Stop Schedule
-  currentlyTypingSchedule.stop();
+  process.on("SIGTERM", () => {
+    console.log("SIGTERM");
 
-  // Close WebSocket Server
-  io.close();
-});
+    // Stop Schedule
+    currentlyTypingSchedule.stop();
+
+    // Close WebSocket Server
+    io.close();
+  });
+})();
