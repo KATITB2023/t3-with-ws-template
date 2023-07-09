@@ -42,6 +42,29 @@ export type ServerEventsResolver<
   T extends readonly ServerEvent<any, any, any>[]
 > = Merge<ServerEventResolver<T[number]>>;
 
+/**
+ *
+ * @param name event name that will be registered
+ * @param input zod schema to validate the input
+ * @param authRequired if true, the client must be authenticated to use this event, and the session will not be null.
+ * @param handler the function that runs when frontend emits this event
+ *
+ * On handler, you can access the socket client, the socket server, and the prisma client.
+ * The input schema that you passed will be inferred on the input parameter.
+ *
+ * @example
+ * ```ts
+ * const exampleEvent = createEvent({
+ *  name: "example",
+ *  input: z.number(),
+ *  authRequired: true,
+ * }, async ({ ctx, input }) => {
+ *   const { client, io, prisma } = ctx;
+ *   const { session } = client.data;
+ *   client.emit("notifyClient", input);
+ * });
+ * ```
+ */
 export function createEvent<
   EventName extends string,
   Return,
