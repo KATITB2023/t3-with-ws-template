@@ -74,6 +74,7 @@ export function createEvent<
     // @ts-expect-error - This is a valid event name
     socket.on(name, async (data, callback) => {
       if (authRequired && !socket.data.session) {
+        callback?.({ success: false, error: "Unauthenticated" });
         return;
       }
       const validation = input.safeParse(data);
