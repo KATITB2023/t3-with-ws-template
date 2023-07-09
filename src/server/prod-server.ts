@@ -1,11 +1,10 @@
-import { applyWSSHandler } from "@trpc/server/adapters/ws";
-import { parse } from "url";
 import http from "http";
 import next from "next";
-import ws from "ws";
-import { createTRPCContext } from "~/server/api/trpc";
-import { appRouter } from "~/server/api/root";
-import { currentlyTypingSchedule } from "~/server/event-emitter/schedule";
+import { Server } from "socket.io";
+import { parse } from "url";
+import parser from "./socket/parser";
+import { currentlyTypingSchedule } from "./socket/schedule";
+import { setupSocket, type SocketServer } from "./socket/setup";
 
 const port = parseInt(process.env.PORT || "3000", 10);
 const dev = process.env.NODE_ENV !== "production";
@@ -35,12 +34,11 @@ void app.prepare().then(() => {
     void handle(req, res, parsedUrl);
   });
 
-  const wss = new ws.Server({ server });
-  const handler = applyWSSHandler({
-    wss,
-    router: appRouter,
-    createContext: createTRPCContext,
+  const io: SocketServer = new Server(server, {
+    parser,
   });
+
+  setupSocket(io);
 
   // Start Schedule
   currentlyTypingSchedule.start();
@@ -54,11 +52,8 @@ void app.prepare().then(() => {
   process.on("SIGTERM", () => {
     console.log("SIGTERM");
 
-    // Stop Schedule
+    // Stop schedule
     currentlyTypingSchedule.stop();
-
-    // Notify clients to reconnect
-    handler.broadcastReconnectNotification();
   });
 
   server.listen(port);

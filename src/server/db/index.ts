@@ -1,12 +1,12 @@
 import { PrismaClient } from "@prisma/client";
+import { env } from "~/env.cjs";
 import {
+  softDeleteChangeDelete,
   softDeleteChangeFind,
   softDeleteChangeUpdate,
-  softDeleteChangeDelete,
   versioningChangeUpdate,
 } from "~/server/db/middleware";
-import { otelSetup } from "~/server/db/setup";
-import { env } from "~/env.cjs";
+import { otelSetup } from "./setup";
 
 // This is a helper function that instantiates Prisma
 const instantiatePrisma = () => {

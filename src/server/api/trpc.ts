@@ -10,18 +10,12 @@
 import { UserRole } from "@prisma/client";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
-import { type NodeHTTPCreateContextFnOptions } from "@trpc/server/dist/adapters/node-http";
-import { type IncomingMessage } from "http";
 import { type Session } from "next-auth";
 import { getSession } from "next-auth/react";
 import superjson from "superjson";
-import type ws from "ws";
 import { ZodError } from "zod";
 import { bucket } from "~/server/bucket";
 import { prisma } from "~/server/db";
-import { eventEmitter } from "~/server/event-emitter";
-import { RedisEventEmitter } from "~/server/event-emitter/configuration";
-import { currentlyTyping } from "~/server/event-emitter/state";
 import { tracer } from "~/server/tracer";
 
 /**
@@ -46,18 +40,12 @@ type CreateContextOptions = {
  *
  * @see https://create.t3.gg/en/usage/trpc#-serverapitrpcts
  */
-const createInnerTRPCContext = async (opts: CreateContextOptions) => {
-  let resolvedEventEmitter = eventEmitter;
-  if (eventEmitter instanceof RedisEventEmitter)
-    resolvedEventEmitter = await eventEmitter.loading;
-
+const createInnerTRPCContext = (opts: CreateContextOptions) => {
   return {
     session: opts.session,
     prisma,
     tracer,
     bucket,
-    eventEmitter: resolvedEventEmitter,
-    currentlyTyping,
   };
 };
 
@@ -67,14 +55,10 @@ const createInnerTRPCContext = async (opts: CreateContextOptions) => {
  *
  * @see https://trpc.io/docs/context
  */
-export const createTRPCContext = async (
-  opts:
-    | CreateNextContextOptions
-    | NodeHTTPCreateContextFnOptions<IncomingMessage, ws>
-) => {
+export const createTRPCContext = async (opts: CreateNextContextOptions) => {
   const session = await getSession(opts);
 
-  return await createInnerTRPCContext({
+  return createInnerTRPCContext({
     session,
   });
 };

@@ -1,50 +1,7 @@
-import { type Post } from "@prisma/client";
-import { observable } from "@trpc/server/observable";
 import { z } from "zod";
-import {
-  createTRPCRouter,
-  publicProcedure,
-  protectedProcedure,
-} from "~/server/api/trpc";
+import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 
 export const postRouter = createTRPCRouter({
-  add: protectedProcedure
-    .input(
-      z.object({
-        text: z.string().min(1),
-      })
-    )
-    .mutation(async ({ ctx, input }) => {
-      const post = await ctx.prisma.post.create({
-        data: {
-          userId: ctx.session.user.id,
-          text: input.text,
-        },
-      });
-
-      ctx.eventEmitter.emit("add", post);
-
-      delete ctx.currentlyTyping[ctx.session.user.id];
-
-      ctx.eventEmitter.emit("isTypingUpdate");
-
-      return post;
-    }),
-
-  isTyping: protectedProcedure
-    .input(z.object({ typing: z.boolean() }))
-    .mutation(({ ctx, input }) => {
-      if (!input.typing) {
-        delete ctx.currentlyTyping[ctx.session.user.id];
-      } else {
-        ctx.currentlyTyping[ctx.session.user.id] = {
-          lastTyped: new Date(),
-        };
-      }
-
-      ctx.eventEmitter.emit("isTypingUpdate");
-    }),
-
   infinite: publicProcedure
     .input(
       z.object({
@@ -75,38 +32,4 @@ export const postRouter = createTRPCRouter({
         prevCursor,
       };
     }),
-
-  onAdd: publicProcedure.subscription(({ ctx }) => {
-    return observable<Post>((emit) => {
-      const onAdd = (data: Post) => {
-        emit.next(data);
-      };
-
-      ctx.eventEmitter.on("add", onAdd);
-
-      return () => {
-        ctx.eventEmitter.off("add", onAdd);
-      };
-    });
-  }),
-
-  whoIsTyping: publicProcedure.subscription(({ ctx }) => {
-    let prev: string[] = [];
-
-    return observable<string[]>((emit) => {
-      const onIsTypingUpdate = () => {
-        const newData = Object.keys(ctx.currentlyTyping);
-
-        if (prev.toString() !== newData.toString()) emit.next(newData);
-
-        prev = newData;
-      };
-
-      ctx.eventEmitter.on("isTypingUpdate", onIsTypingUpdate);
-
-      return () => {
-        ctx.eventEmitter.off("isTypingUpdate", onIsTypingUpdate);
-      };
-    });
-  }),
 });

@@ -1,30 +1,31 @@
-import { applyWSSHandler } from "@trpc/server/adapters/ws";
-import ws from "ws";
-import { createTRPCContext } from "~/server/api/trpc";
-import { appRouter } from "~/server/api/root";
-import { currentlyTypingSchedule } from "~/server/event-emitter/schedule";
+import { Server } from "socket.io";
+import { env } from "~/env.cjs";
+import { currentlyTypingSchedule } from "~/server/socket/schedule";
+import parser from "./socket/parser";
+import type { SocketServer } from "./socket/setup";
+import { setupSocket } from "./socket/setup";
 
 const port = parseInt(process.env.PORT || "3001", 10);
 
-const wss = new ws.Server({
-  port,
+const io: SocketServer = new Server(port, {
+  cors: {
+    origin: env.NEXT_PUBLIC_API_URL,
+    credentials: true,
+  },
+  parser,
 });
 
-const handler = applyWSSHandler({
-  wss,
-  router: appRouter,
-  createContext: createTRPCContext,
+io.on("connection", (socket) => {
+  console.log(`Connection (${io.engine.clientsCount})`);
+  socket.once("disconnect", () => {
+    console.log(`Connection (${io.engine.clientsCount})`);
+  });
 });
+
+setupSocket(io);
 
 // Start Schedule
 currentlyTypingSchedule.start();
-
-wss.on("connection", (ws) => {
-  console.log(`Connection (${wss.clients.size})`);
-  ws.once("close", () => {
-    console.log(`Connection (${wss.clients.size})`);
-  });
-});
 
 console.log(`WebSocket Server listening on ws://localhost:${port}`);
 
@@ -34,9 +35,6 @@ process.on("SIGTERM", () => {
   // Stop Schedule
   currentlyTypingSchedule.stop();
 
-  // Notify clients to reconnect
-  handler.broadcastReconnectNotification();
-
   // Close WebSocket Server
-  wss.close();
+  io.close();
 });

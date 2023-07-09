@@ -1,16 +1,15 @@
-import { useState } from "react";
-import { signIn, useSession } from "next-auth/react";
-import { z } from "zod";
-import {
-  useForm,
-  Controller,
-  type SubmitHandler,
-  type FieldErrors,
-} from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { api } from "~/utils/api";
-import { TRPCClientError } from "@trpc/client";
+import { signIn, useSession } from "next-auth/react";
+import { useState } from "react";
+import {
+  Controller,
+  useForm,
+  type FieldErrors,
+  type SubmitHandler,
+} from "react-hook-form";
 import { P, match } from "ts-pattern";
+import { z } from "zod";
+import useEmit from "~/hooks/useEmit";
 
 const schema = z.object({
   text: z.string().min(1),
@@ -24,9 +23,15 @@ const AddMessageForm: React.FC<{ onMessagePost: () => void }> = ({
   // Next-Auth hooks
   const { data: session } = useSession();
 
-  // TRPC hooks
-  const addPost = api.post.add.useMutation();
-  const isTyping = api.post.isTyping.useMutation();
+  const isTyping = useEmit("isTyping");
+
+  const postEmit = useEmit("post", {
+    onSuccess: () => {
+      reset();
+      onMessagePost();
+      return;
+    },
+  });
 
   // Form hooks
   const {
@@ -45,24 +50,12 @@ const AddMessageForm: React.FC<{ onMessagePost: () => void }> = ({
   const [enterToPostMessage, setEnterToPostMessage] = useState(true);
 
   // Event handlers
-  const onSubmit: SubmitHandler<FormValues> = async (
+  const onSubmit: SubmitHandler<FormValues> = (
     data,
     event?: React.BaseSyntheticEvent
   ) => {
-    try {
-      event?.preventDefault();
-
-      await addPost.mutateAsync({
-        text: data.text,
-      });
-
-      reset();
-      onMessagePost();
-    } catch (error) {
-      if (!(error instanceof TRPCClientError)) throw error;
-
-      console.error(error.message);
-    }
+    event?.preventDefault();
+    postEmit.mutate({ text: data.text });
   };
 
   const onKeyDownCustom: React.KeyboardEventHandler<HTMLTextAreaElement> = (
@@ -119,7 +112,7 @@ const AddMessageForm: React.FC<{ onMessagePost: () => void }> = ({
 
   return (
     <form onSubmit={(event) => void handleSubmit(onSubmit)(event)}>
-      <fieldset disabled={addPost.isLoading} className="min-w-0">
+      <fieldset disabled={postEmit.isLoading} className="min-w-0">
         <div className="flex w-full items-end rounded bg-gray-500 px-3 py-2 text-lg text-gray-200">
           <Controller
             name="text"

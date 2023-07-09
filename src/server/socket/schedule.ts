@@ -1,7 +1,13 @@
 import { schedule } from "node-cron";
-import { currentlyTyping } from "~/server/event-emitter/state";
-import { eventEmitter } from "~/server/event-emitter";
 import { env } from "~/env.cjs";
+import type { SocketServer } from "./setup";
+import { currentlyTyping } from "./state";
+
+let io: SocketServer;
+
+export function setupScheduleSocket(socketServer: SocketServer) {
+  io = socketServer;
+}
 
 export const currentlyTypingSchedule = schedule("*/1 * * * * *", () => {
   let updated = false;
@@ -14,5 +20,5 @@ export const currentlyTypingSchedule = schedule("*/1 * * * * *", () => {
     }
   }
 
-  if (updated) eventEmitter.emit("isTypingUpdate");
+  if (updated) io.emit("whoIsTyping", Object.keys(currentlyTyping));
 });

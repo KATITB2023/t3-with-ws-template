@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { type Post } from "@prisma/client";
 import { type NextPage } from "next";
 import { signOut, useSession } from "next-auth/react";
-import { type Post } from "@prisma/client";
+import { useCallback, useEffect, useRef, useState } from "react";
 import AddMessageForm from "~/components/AddMessageForm";
+import useSubscription from "~/hooks/useSubscription";
 import Layout from "~/layout";
 import { api } from "~/utils/api";
 
@@ -14,7 +15,6 @@ const Chat: NextPage = () => {
       getPreviousPageParam: (d) => d.prevCursor,
     }
   );
-  const utils = api.useContext();
   const { hasPreviousPage, isFetchingPreviousPage, fetchPreviousPage } =
     postsQuery;
 
@@ -61,27 +61,15 @@ const Chat: NextPage = () => {
   }, [scrollToBottomOfList]);
 
   // Subscribe to new posts and add
-  api.post.onAdd.useSubscription(undefined, {
-    onData(post) {
-      addMessages([post]);
-    },
-    onError(err) {
-      console.error(`Subscription error: ${err.message}`);
-
-      // We might have missed a message - invalidate cache
-      void utils.post.infinite.invalidate();
-    },
+  useSubscription("add", (post) => {
+    addMessages([post]);
   });
 
   // Currently typing state
   const [currentlyTyping, setCurrentlyTyping] = useState<string[]>([]);
-  api.post.whoIsTyping.useSubscription(undefined, {
-    onData(data) {
-      setCurrentlyTyping(data);
-    },
-    onError(err) {
-      console.error(`Subscription error: ${err.message}`);
-    },
+
+  useSubscription("whoIsTyping", (data) => {
+    setCurrentlyTyping(data);
   });
 
   return (
