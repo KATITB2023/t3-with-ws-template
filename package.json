@@ -6,7 +6,7 @@
     "preinstall": "npx only-allow yarn",
     "prebuild": "yarn generate && yarn migrate-deploy",
     "build:1-next": "cross-env NODE_ENV=production next build",
-    "build:2-server": "tsc --project tsconfig.server.json && tsc-alias -p tsconfig.server.json",
+    "build:2-server": "rm -rf build && tsc --project tsconfig.server.json && tsc-alias -p tsconfig.server.json",
     "build": "run-s build:*",
     "dev:wss": "cross-env NODE_ENV=development PORT=3001 tsx watch src/server/wss-dev-server.ts src/server/socket/** --tsconfig tsconfig.server.json",
     "dev:next": "next dev",

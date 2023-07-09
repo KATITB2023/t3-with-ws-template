@@ -1,3 +1,6 @@
+import { loadEnvConfig } from "@next/env";
+loadEnvConfig(process.cwd());
+
 import http from "http";
 import next from "next";
 import { Server } from "socket.io";
