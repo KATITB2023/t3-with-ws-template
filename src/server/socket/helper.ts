@@ -44,9 +44,9 @@ export type ServerEventsResolver<
 
 export function createEvent<
   EventName extends string,
-  InputSchema extends z.ZodType,
   Return,
-  AuthRequired extends boolean
+  AuthRequired extends boolean,
+  InputSchema extends z.ZodType = z.ZodUndefined
 >(
   {
     name,
@@ -54,7 +54,7 @@ export function createEvent<
     authRequired,
   }: {
     name: EventName;
-    input: InputSchema;
+    input?: InputSchema;
     authRequired?: AuthRequired;
   },
   handler: ({
@@ -63,7 +63,7 @@ export function createEvent<
   }: {
     ctx: {
       io: SocketServer;
-      socket: SocketClientInServer<AuthRequired>;
+      client: SocketClientInServer<AuthRequired>;
       prisma: PrismaClient;
     };
     input: z.infer<InputSchema>;
@@ -77,7 +77,10 @@ export function createEvent<
         callback?.({ success: false, error: "Unauthenticated" });
         return;
       }
-      const validation = input.safeParse(data);
+      const validation = input?.safeParse(data) ?? {
+        success: true,
+        data: undefined,
+      };
       if (!validation.success) {
         callback?.({ success: false, error: validation.error });
         return;
@@ -85,7 +88,7 @@ export function createEvent<
       try {
         const result = await handler({
           // @ts-expect-error its already right for session tho
-          ctx: { io, socket, prisma },
+          ctx: { io, client: socket, prisma },
           input: validation.data as z.infer<InputSchema>,
         });
         callback?.({ success: true, data: result });

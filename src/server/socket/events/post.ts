@@ -11,12 +11,12 @@ export const postEvent = createEvent(
   async ({ ctx, input }) => {
     const post = await ctx.prisma.post.create({
       data: {
-        userId: ctx.socket.data.session.user.id,
+        userId: ctx.client.data.session.user.id,
         text: input.text,
       },
     });
     ctx.io.emit("add", post);
-    delete currentlyTyping[ctx.socket.data.session.user.id];
+    delete currentlyTyping[ctx.client.data.session.user.id];
     ctx.io.emit("whoIsTyping", Object.keys(currentlyTyping));
     return post;
   }
@@ -30,9 +30,9 @@ export const isTypingEvent = createEvent(
   },
   ({ ctx, input }) => {
     if (!input.typing) {
-      delete currentlyTyping[ctx.socket.data.session.user.id];
+      delete currentlyTyping[ctx.client.data.session.user.id];
     } else {
-      currentlyTyping[ctx.socket.data.session.user.id] = {
+      currentlyTyping[ctx.client.data.session.user.id] = {
         lastTyped: new Date(),
       };
     }
