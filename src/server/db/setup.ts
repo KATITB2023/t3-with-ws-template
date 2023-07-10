@@ -8,14 +8,14 @@ import {
   TraceIdRatioBasedSampler,
 } from "@opentelemetry/sdk-trace-base";
 import { AsyncHooksContextManager } from "@opentelemetry/context-async-hooks";
-import * as api from "@opentelemetry/api";
 import { PrismaInstrumentation } from "@prisma/instrumentation";
 import { Resource } from "@opentelemetry/resources";
+import { context } from "@opentelemetry/api";
 import { env } from "~/env.cjs";
 
 export const otelSetup = () => {
   const contextManager = new AsyncHooksContextManager().enable();
-  api.context.setGlobalContextManager(contextManager);
+  context.setGlobalContextManager(contextManager);
 
   // Configure the console exporter
   const consoleExporter = new ConsoleSpanExporter();

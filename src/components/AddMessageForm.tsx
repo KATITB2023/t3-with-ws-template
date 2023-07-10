@@ -52,10 +52,7 @@ const AddMessageForm: React.FC<{ onMessagePost: () => void }> = ({
   const [enterToPostMessage, setEnterToPostMessage] = useState(true);
 
   // Event handlers
-  const onSubmit: SubmitHandler<FormValues> = (
-    data,
-    event?: React.BaseSyntheticEvent
-  ) => {
+  const onSubmit: SubmitHandler<FormValues> = (data, event) => {
     event?.preventDefault();
     console.log("Submitting");
     messageEmit.mutate({ message: data.text, receiverId: pairId });

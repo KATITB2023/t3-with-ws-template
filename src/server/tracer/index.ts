@@ -4,7 +4,7 @@ import { type Tracer, trace } from "@opentelemetry/api";
 const instantiateTracer = () => trace.getTracer("server");
 
 const globalForTracer = globalThis as unknown as {
-  tracer: Tracer | undefined;
+  tracer?: Tracer;
 };
 
 export const tracer = globalForTracer.tracer ?? instantiateTracer();

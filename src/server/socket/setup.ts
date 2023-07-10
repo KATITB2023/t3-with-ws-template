@@ -1,13 +1,13 @@
-import { addUserSockets, removeUserSockets } from "./room";
 import { createAdapter } from "@socket.io/redis-streams-adapter";
 import type { Session } from "next-auth";
 import { getSession } from "next-auth/react";
 import type { Server, Socket } from "socket.io";
+import { type Message } from "@prisma/client";
 import type { ServerEventsResolver } from "~/server/socket/helper";
 import { setupScheduleSocket } from "~/server/socket/schedule";
 import { Redis } from "~/server/redis";
-import { isTypingEvent, messageEvent } from "./events/message";
-import { type Message } from "@prisma/client";
+import { isTypingEvent, messageEvent } from "~/server/socket/events/message";
+import { addUserSockets, removeUserSockets } from "~/server/socket/room";
 
 /**
  * @description server events are events that are emmited from the client to the server.
@@ -89,7 +89,7 @@ export type SocketServer = Server<
   ClientToServerEvents,
   ServerToClientEvents,
   InterServerEvents,
-  SocketData
+  SocketData<boolean>
 >;
 
 /**

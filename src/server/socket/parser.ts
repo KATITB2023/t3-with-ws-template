@@ -15,35 +15,27 @@ class CustomEncoder extends Encoder {
     super();
   }
 
-  encode(obj: Packet) {
+  encode(obj: Packet): [string] {
     // First is type
     let str = `${obj.type}`;
 
     // attachments if we have them
     if (
-      obj.type === PacketType.BINARY_EVENT ||
-      obj.type === PacketType.BINARY_ACK
-    ) {
-      if (obj.attachments) {
-        str += obj.attachments.toString() + "-";
-      }
-    }
+      (obj.type === PacketType.BINARY_EVENT ||
+        obj.type === PacketType.BINARY_ACK) &&
+      obj.attachments
+    )
+      str += obj.attachments.toString() + "-";
 
     // if we have a namespace other than `/`
     // we append it followed by a comma `,`
-    if (obj.nsp && "/" !== obj.nsp) {
-      str += obj.nsp + ",";
-    }
+    if (obj.nsp && "/" !== obj.nsp) str += obj.nsp + ",";
 
     // immediately followed by the id
-    if (obj.id) {
-      str += obj.id;
-    }
+    if (obj.id) str += obj.id;
 
     // json data
-    if (obj.data) {
-      str += superjson.stringify(obj.data);
-    }
+    if (obj.data) str += superjson.stringify(obj.data);
 
     return [str];
   }
@@ -70,9 +62,8 @@ class CustomDecoder extends Decoder {
       nsp: "/",
     };
 
-    if (PacketType[p.type] === undefined) {
+    if (PacketType[p.type] === undefined)
       throw new Error(`Unknown packet type ${p.type}`);
-    }
 
     // look up attachments if type binary
     if (
@@ -127,7 +118,7 @@ class CustomDecoder extends Decoder {
     return p;
   }
 
-  private tryParseCustom(str: string) {
+  private tryParseCustom(str: string): boolean {
     try {
       return superjson.parse(str);
     } catch (e) {

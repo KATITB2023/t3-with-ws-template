@@ -10,7 +10,7 @@ const instantiateBucket = () => {
 };
 
 const globalForBucket = globalThis as unknown as {
-  bucket: Bucket | undefined;
+  bucket?: Bucket;
 };
 
 export const bucket = globalForBucket.bucket ?? instantiateBucket();
