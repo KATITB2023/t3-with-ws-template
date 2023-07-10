@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { createEvent } from "../helper";
-import { currentlyTyping } from "../state";
+import { createEvent } from "~/server/socket/helper";
+import { currentlyTyping } from "~/server/socket/state";
 
 export const postEvent = createEvent(
   {
@@ -15,9 +15,13 @@ export const postEvent = createEvent(
         text: input.text,
       },
     });
+
     ctx.io.emit("add", post);
+
     delete currentlyTyping[ctx.client.data.session.user.id];
+
     ctx.io.emit("whoIsTyping", Object.keys(currentlyTyping));
+
     return post;
   }
 );

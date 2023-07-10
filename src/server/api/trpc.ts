@@ -11,12 +11,12 @@ import { UserRole } from "@prisma/client";
 import { initTRPC, TRPCError } from "@trpc/server";
 import { type CreateNextContextOptions } from "@trpc/server/adapters/next";
 import { type Session } from "next-auth";
-import { getSession } from "next-auth/react";
 import superjson from "superjson";
 import { ZodError } from "zod";
 import { bucket } from "~/server/bucket";
 import { prisma } from "~/server/db";
 import { tracer } from "~/server/tracer";
+import { getServerAuthSession } from "~/server/auth";
 
 /**
  * 1. CONTEXT
@@ -56,7 +56,10 @@ const createInnerTRPCContext = (opts: CreateContextOptions) => {
  * @see https://trpc.io/docs/context
  */
 export const createTRPCContext = async (opts: CreateNextContextOptions) => {
-  const session = await getSession(opts);
+  const { req, res } = opts;
+
+  // Get the session from the server using the getServerSession wrapper function
+  const session = await getServerAuthSession({ req, res });
 
   return createInnerTRPCContext({
     session,

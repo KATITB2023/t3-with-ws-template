@@ -5,11 +5,10 @@ import { getSession } from "next-auth/react";
 import { createClient } from "redis";
 import type { Server, Socket } from "socket.io";
 import { env } from "~/env.cjs";
-import { isTypingEvent, postEvent } from "./events/post";
-import type { ServerEventsResolver } from "./helper";
-import { setupScheduleSocket } from "./schedule";
+import { isTypingEvent, postEvent } from "~/server/socket/events/post";
+import type { ServerEventsResolver } from "~/server/socket/helper";
+import { setupScheduleSocket } from "~/server/socket/schedule";
 
-// add server events here
 /**
  * @description server events are events that are emmited from the client to the server.
  * server event is created by calling `createEvent` function. After creating the event, add it to the `serverEvents` array.
@@ -124,13 +123,13 @@ export function setupSocket(io: SocketServer) {
   io.use((socket, next) => {
     getSession({ req: socket.request })
       .then((session) => {
-        socket.data.session = session as Session;
+        socket.data.session = session;
         next();
       })
       .catch(next);
   });
 
-  // setup all socket events here
+  // Setup all socket events here
   io.on("connection", (socket) => {
     serverEvents.forEach((event) => event(io, socket));
   });

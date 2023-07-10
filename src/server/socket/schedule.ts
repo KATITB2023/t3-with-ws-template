@@ -1,7 +1,7 @@
 import { schedule } from "node-cron";
 import { env } from "~/env.cjs";
-import type { SocketServer } from "./setup";
-import { currentlyTyping } from "./state";
+import type { SocketServer } from "~/server/socket/setup";
+import { currentlyTyping } from "~/server/socket/state";
 
 let io: SocketServer;
 

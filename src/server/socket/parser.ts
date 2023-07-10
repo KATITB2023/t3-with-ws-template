@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unsafe-member-access */
-/* eslint-disable @typescript-eslint/restrict-plus-operands */
 import { Decoder, Encoder, PacketType, type Packet } from "socket.io-parser";
 import superjson from "superjson";
 
@@ -18,8 +16,8 @@ class CustomEncoder extends Encoder {
   }
 
   encode(obj: Packet) {
-    // first is type
-    let str = "" + obj.type;
+    // First is type
+    let str = `${obj.type}`;
 
     // attachments if we have them
     if (
@@ -38,12 +36,12 @@ class CustomEncoder extends Encoder {
     }
 
     // immediately followed by the id
-    if (null != obj.id) {
+    if (obj.id) {
       str += obj.id;
     }
 
     // json data
-    if (null != obj.data) {
+    if (obj.data) {
       str += superjson.stringify(obj.data);
     }
 
@@ -56,25 +54,24 @@ class CustomDecoder extends Decoder {
     super();
   }
 
-  public add(obj: any): void {
+  public add(obj: object): void {
     if (typeof obj === "string") {
       super.emitReserved("decoded", this.decodeStringCustom(obj));
     } else {
-      // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-      throw new Error(`Unknown type: ${obj}`);
+      throw new Error(`Unknown type: ${typeof obj}`);
     }
   }
 
   private decodeStringCustom(str: string): Packet {
     let i = 0;
     // look up type
-    const p: any = {
+    const p: Packet = {
       type: Number(str.charAt(0)),
+      nsp: "/",
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
     if (PacketType[p.type] === undefined) {
-      throw new Error("unknown packet type " + p.type);
+      throw new Error(`Unknown packet type ${p.type}`);
     }
 
     // look up attachments if type binary
@@ -83,9 +80,9 @@ class CustomDecoder extends Decoder {
       p.type === PacketType.BINARY_ACK
     ) {
       const start = i + 1;
-      while (str.charAt(++i) !== "-" && i != str.length) {}
+      while (str.charAt(++i) !== "-" && i !== str.length) {}
       const buf = str.substring(start, i);
-      if (buf != Number(buf).toString() || str.charAt(i) !== "-") {
+      if (buf !== Number(buf).toString() || str.charAt(i) !== "-") {
         throw new Error("Illegal attachments");
       }
       p.attachments = Number(buf);
@@ -100,17 +97,15 @@ class CustomDecoder extends Decoder {
         if (i === str.length) break;
       }
       p.nsp = str.substring(start, i);
-    } else {
-      p.nsp = "/";
     }
 
     // look up id
     const next = str.charAt(i + 1);
-    if ("" !== next && Number(next).toString() == next) {
+    if ("" !== next && Number(next).toString() === next) {
       const start = i + 1;
       while (++i) {
         const c = str.charAt(i);
-        if (null == c || Number(c).toString() != c) {
+        if (c === null || Number(c).toString() !== c) {
           --i;
           break;
         }
@@ -121,15 +116,15 @@ class CustomDecoder extends Decoder {
 
     // look up json data
     if (str.charAt(++i)) {
-      const payload = this.tryParseCustom(str.substr(i));
-      if (CustomDecoder.isPayloadValidCustom(p.type as PacketType, payload)) {
+      const payload = this.tryParseCustom(str.substring(i));
+      if (CustomDecoder.isPayloadValidCustom(p.type, payload)) {
         p.data = payload;
       } else {
-        throw new Error("invalid payload");
+        throw new Error("Invalid payload");
       }
     }
 
-    return p as Packet;
+    return p;
   }
 
   private tryParseCustom(str: string) {
@@ -140,10 +135,14 @@ class CustomDecoder extends Decoder {
     }
   }
 
-  private static isPayloadValidCustom(type: PacketType, payload: any): boolean {
-    function isObject(value: any): boolean {
+  private static isPayloadValidCustom(
+    type: PacketType,
+    payload: unknown
+  ): boolean {
+    const isObject = (value: unknown) => {
       return Object.prototype.toString.call(value) === "[object Object]";
-    }
+    };
+
     switch (type) {
       case PacketType.CONNECT:
         return isObject(payload);
@@ -165,5 +164,7 @@ class CustomDecoder extends Decoder {
     }
   }
 }
+
 const parser = { Encoder: CustomEncoder, Decoder: CustomDecoder };
+
 export default parser;

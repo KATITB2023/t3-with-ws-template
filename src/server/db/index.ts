@@ -6,7 +6,7 @@ import {
   softDeleteChangeUpdate,
   versioningChangeUpdate,
 } from "~/server/db/middleware";
-import { otelSetup } from "./setup";
+import { otelSetup } from "~/server/db/setup";
 
 // This is a helper function that instantiates Prisma
 const instantiatePrisma = () => {

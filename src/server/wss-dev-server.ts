@@ -1,12 +1,11 @@
 import { Server } from "socket.io";
 import { env } from "~/env.cjs";
 import { currentlyTypingSchedule } from "~/server/socket/schedule";
-import parser from "./socket/parser";
-import type { SocketServer } from "./socket/setup";
-import { getAdapter, setupSocket } from "./socket/setup";
+import parser from "~/server/socket/parser";
+import type { SocketServer } from "~/server/socket/setup";
+import { getAdapter, setupSocket } from "~/server/socket/setup";
 
-// eslint-disable-next-line @typescript-eslint/no-floating-promises
-(async () => {
+void (async () => {
   const port = parseInt(process.env.PORT || "3001", 10);
 
   const io: SocketServer = new Server(port, {
@@ -27,11 +26,12 @@ import { getAdapter, setupSocket } from "./socket/setup";
 
   setupSocket(io);
 
+  console.log(`WebSocket Server listening on ws://localhost:${port}`);
+
   // Start Schedule
   currentlyTypingSchedule.start();
 
-  console.log(`WebSocket Server listening on ws://localhost:${port}`);
-
+  // On SIGTERM
   process.on("SIGTERM", () => {
     console.log("SIGTERM");
 

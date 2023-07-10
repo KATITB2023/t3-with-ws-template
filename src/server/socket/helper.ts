@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unsafe-call */
 import type { PrismaClient } from "@prisma/client";
-import type { z } from "zod";
-import { prisma } from "../db";
-import type { SocketClientInServer, SocketServer } from "./setup";
+import type { ZodType, ZodTypeDef, z } from "zod";
+import { prisma } from "~/server/db";
+import type { SocketClientInServer, SocketServer } from "~/server/socket/setup";
 
 export type SocketResponse<Data = unknown, Error = unknown> =
   | { success: false; error?: Error }
@@ -31,15 +29,19 @@ export type ServerEventResolver<T> = T extends ServerEvent<
     }
   : never;
 
-type ExtractKeys<T> = T extends any ? keyof T : never;
-type MergeValues<T> = T extends any ? T[keyof T] : never;
+type ExtractKeys<T> = T extends object ? keyof T : never;
+type MergeValues<T> = T extends object ? T[keyof T] : never;
 
 type Merge<T extends object> = {
-  [K in ExtractKeys<T>]: MergeValues<Extract<T, { [P in K]: any }>>;
+  [K in ExtractKeys<T>]: MergeValues<Extract<T, { [P in K]: object }>>;
 };
 
 export type ServerEventsResolver<
-  T extends readonly ServerEvent<any, any, any>[]
+  T extends readonly ServerEvent<
+    string,
+    ZodType<unknown, ZodTypeDef, unknown>,
+    unknown
+  >[]
 > = Merge<ServerEventResolver<T[number]>>;
 
 /**
@@ -93,34 +95,43 @@ export function createEvent<
   }) => Promise<Return> | Return
 ): ServerEvent<EventName, InputSchema, Return> {
   // @ts-expect-error type lying so inference can be easy
-  return (io: SocketServer, socket: SocketClientInServer) => {
-    // @ts-expect-error - This is a valid event name
-    socket.on(name, async (data, callback) => {
-      if (authRequired && !socket.data.session) {
-        callback?.({ success: false, error: "Unauthenticated" });
-        return;
+  return (io: SocketServer, socket: SocketClientInServer<AuthRequired>) => {
+    socket.on(
+      name,
+      // @ts-expect-error - This is a valid event name
+      async (
+        data: unknown,
+        callback: (response: SocketResponse) => void | undefined
+      ) => {
+        if (authRequired && !socket.data.session) {
+          callback?.({ success: false, error: "Unauthenticated" });
+          return;
+        }
+        const validation = input?.safeParse(data) ?? {
+          success: true,
+          data: undefined,
+        };
+        if (!validation.success) {
+          callback?.({ success: false, error: validation.error });
+          return;
+        }
+        try {
+          const result = await handler({
+            ctx: {
+              io,
+              client: socket,
+              prisma,
+            },
+            input: validation.data as z.infer<InputSchema>,
+          });
+          callback?.({ success: true, data: result });
+          return;
+        } catch (error) {
+          console.error(error);
+          callback?.({ success: false, error });
+          return;
+        }
       }
-      const validation = input?.safeParse(data) ?? {
-        success: true,
-        data: undefined,
-      };
-      if (!validation.success) {
-        callback?.({ success: false, error: validation.error });
-        return;
-      }
-      try {
-        const result = await handler({
-          // @ts-expect-error its already right for session tho
-          ctx: { io, client: socket, prisma },
-          input: validation.data as z.infer<InputSchema>,
-        });
-        callback?.({ success: true, data: result });
-        return;
-      } catch (error) {
-        console.error(error);
-        callback?.({ success: false, error });
-        return;
-      }
-    });
+    );
   };
 }

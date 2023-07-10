@@ -1,5 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable react-hooks/exhaustive-deps */
 import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
 import type { SocketResponse } from "~/server/socket/helper";
 import type { ClientToServerEvents } from "~/server/socket/setup";
