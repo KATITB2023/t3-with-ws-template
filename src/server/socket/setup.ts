@@ -1,13 +1,13 @@
-import type { Post } from "@prisma/client";
+import { addUserSockets, removeUserSockets } from "./room";
 import { createAdapter } from "@socket.io/redis-streams-adapter";
 import type { Session } from "next-auth";
 import { getSession } from "next-auth/react";
-import { createClient } from "redis";
 import type { Server, Socket } from "socket.io";
-import { env } from "~/env.cjs";
-import { isTypingEvent, postEvent } from "~/server/socket/events/post";
 import type { ServerEventsResolver } from "~/server/socket/helper";
 import { setupScheduleSocket } from "~/server/socket/schedule";
+import { Redis } from "~/server/redis";
+import { isTypingEvent, messageEvent } from "./events/message";
+import { type Message } from "@prisma/client";
 
 /**
  * @description server events are events that are emmited from the client to the server.
@@ -17,7 +17,7 @@ import { setupScheduleSocket } from "~/server/socket/schedule";
  * @summary
  * DONT FORGET TO ADD THE EVENT TO THIS ARRAY
  */
-const serverEvents = [postEvent, isTypingEvent] as const;
+const serverEvents = [messageEvent, isTypingEvent] as const;
 
 /**
  * @description
@@ -52,7 +52,7 @@ export type ClientToServerEvents = ServerEventsResolver<typeof serverEvents>;
 export type ServerToClientEvents = {
   hello: (name: string) => void;
   whoIsTyping: (data: string[]) => void;
-  add: (post: Post) => void;
+  add: (post: Message) => void;
 };
 
 interface InterServerEvents {
@@ -131,16 +131,21 @@ export function setupSocket(io: SocketServer) {
 
   // Setup all socket events here
   io.on("connection", (socket) => {
-    serverEvents.forEach((event) => event(io, socket));
+    if (socket.data.session) {
+      serverEvents.forEach((event) => event(io, socket));
+      const socketId = socket.id;
+      const userId = socket.data.session.user.id;
+
+      void addUserSockets(userId, socketId);
+
+      socket.on("disconnect", () => {
+        void removeUserSockets(userId, socketId);
+      });
+    }
   });
 }
 
 export async function getAdapter() {
-  if (!env.REDIS_URL) return;
-  const redisClient = createClient({
-    url: env.REDIS_URL,
-  });
-
-  await redisClient.connect();
+  const redisClient = await Redis.getClient();
   return createAdapter(redisClient);
 }

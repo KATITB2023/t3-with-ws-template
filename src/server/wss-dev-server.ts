@@ -15,6 +15,7 @@ void (async () => {
     },
     parser,
     adapter: await getAdapter(),
+    transports: ["websocket"],
   });
 
   io.on("connection", (socket) => {

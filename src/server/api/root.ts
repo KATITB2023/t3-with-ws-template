@@ -1,6 +1,6 @@
 import { storageRouter } from "~/server/api/routers/storage";
-import { postRouter } from "~/server/api/routers/post";
 import { createTRPCRouter } from "~/server/api/trpc";
+import { messageRouter } from "./routers/message";
 
 /**
  * This is the primary router for your server.
@@ -9,7 +9,7 @@ import { createTRPCRouter } from "~/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   storage: storageRouter,
-  post: postRouter,
+  message: messageRouter,
 });
 
 // export type definition of API

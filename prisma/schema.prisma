@@ -2,46 +2,45 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 generator client {
-    provider        = "prisma-client-js"
-    previewFeatures = ["jsonProtocol", "metrics", "tracing", "extendedWhereUnique"]
-    binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
+  provider        = "prisma-client-js"
+  previewFeatures = ["jsonProtocol", "metrics", "tracing", "extendedWhereUnique"]
+  binaryTargets   = ["native", "linux-musl-openssl-3.0.x"]
 }
 
 datasource db {
-    provider = "postgresql"
-    // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
-    // Further reading:
-    // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
-    // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
-    url      = env("DATABASE_URL")
+  provider = "postgresql"
+  // NOTE: When using mysql or sqlserver, uncomment the @db.Text annotations in model Account below
+  // Further reading:
+  // https://next-auth.js.org/adapters/prisma#create-the-prisma-schema
+  // https://www.prisma.io/docs/reference/api-reference/prisma-schema-reference#string
+  url      = env("DATABASE_URL")
 }
 
 model User {
-    id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    nim          String   @unique
-    passwordHash String
-    role         UserRole @default(USER)
-    createdAt    DateTime @unique @default(now()) // Unique for cursor pagination
-    updatedAt    DateTime @unique @default(now()) @updatedAt // Unique for cursor pagination
-    version      Int      @default(0) // Comment this line if you don't want optimistic concurrency control
-    isDeleted    Boolean  @default(false) // Comment this line if you don't want soft delete
+  id           String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  nim          String   @unique
+  passwordHash String
+  role         UserRole @default(USER)
+  createdAt    DateTime @unique @default(now()) // Unique for cursor pagination
+  updatedAt    DateTime @unique @default(now()) @updatedAt // Unique for cursor pagination
+  version      Int      @default(0) // Comment this line if you don't want optimistic concurrency control
+  isDeleted    Boolean  @default(false) // Comment this line if you don't want soft delete
 
-    Post Post[]
+  sentMessages     Message[] @relation("sender")
+  receivedMessages Message[] @relation("receiver")
 }
 
-model Post {
-    id        String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-    userId    String   @db.Uuid
-    text      String   @db.Text
-    createdAt DateTime @unique @default(now()) // Unique for cursor pagination
-    updatedAt DateTime @unique @default(now()) @updatedAt // Unique for cursor pagination
-    version   Int      @default(0) // Comment this line if you don't want optimistic concurrency control
-    isDeleted Boolean  @default(false) // Comment this line if you don't want soft delete
-
-    user User @relation(fields: [userId], references: [id])
+model Message {
+  id         String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  senderId   String   @db.Uuid
+  sender     User     @relation("sender", fields: [senderId], references: [id])
+  receiverId String   @db.Uuid
+  receiver   User     @relation("receiver", fields: [receiverId], references: [id])
+  message    String
+  createdAt  DateTime @unique @default(now()) // Unique for cursor pagination
 }
 
 enum UserRole {
-    ADMIN
-    USER
+  ADMIN
+  USER
 }

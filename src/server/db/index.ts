@@ -1,11 +1,5 @@
 import { PrismaClient } from "@prisma/client";
 import { env } from "~/env.cjs";
-import {
-  softDeleteChangeDelete,
-  softDeleteChangeFind,
-  softDeleteChangeUpdate,
-  versioningChangeUpdate,
-} from "~/server/db/middleware";
 import { otelSetup } from "~/server/db/setup";
 
 // This is a helper function that instantiates Prisma
@@ -20,13 +14,13 @@ const instantiatePrisma = () => {
 
   // Add middleware to handle soft deletes
   // Comment this out to disable soft deletes
-  prisma.$use(softDeleteChangeFind);
-  prisma.$use(softDeleteChangeUpdate);
-  prisma.$use(softDeleteChangeDelete);
+  // prisma.$use(softDeleteChangeFind);
+  // prisma.$use(softDeleteChangeUpdate);
+  // prisma.$use(softDeleteChangeDelete);
 
   // Add middleware to handle optimistic concurrency control
   // Comment this out to disable optimistic concurrency control
-  prisma.$use(versioningChangeUpdate);
+  // prisma.$use(versioningChangeUpdate);
 
   return prisma;
 };

@@ -1,5 +1,6 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { signIn, useSession } from "next-auth/react";
+import { useRouter } from "next/router";
 import { useState } from "react";
 import {
   Controller,
@@ -20,12 +21,13 @@ type FormValues = z.infer<typeof schema>;
 const AddMessageForm: React.FC<{ onMessagePost: () => void }> = ({
   onMessagePost,
 }) => {
-  // Next-Auth hooks
-  const { data: session } = useSession();
+  const router = useRouter();
+  const { data: session } = useSession({ required: true });
+  const pairId = router.query.pairId as string;
 
   const isTyping = useEmit("isTyping");
 
-  const postEmit = useEmit("post", {
+  const messageEmit = useEmit("message", {
     onSuccess: () => {
       reset();
       onMessagePost();
@@ -55,7 +57,8 @@ const AddMessageForm: React.FC<{ onMessagePost: () => void }> = ({
     event?: React.BaseSyntheticEvent
   ) => {
     event?.preventDefault();
-    postEmit.mutate({ text: data.text });
+    console.log("Submitting");
+    messageEmit.mutate({ message: data.text, receiverId: pairId });
   };
 
   const onKeyDownCustom: React.KeyboardEventHandler<HTMLTextAreaElement> = (
@@ -112,7 +115,7 @@ const AddMessageForm: React.FC<{ onMessagePost: () => void }> = ({
 
   return (
     <form onSubmit={(event) => void handleSubmit(onSubmit)(event)}>
-      <fieldset disabled={postEmit.isLoading} className="min-w-0">
+      <fieldset disabled={messageEmit.isLoading} className="min-w-0">
         <div className="flex w-full items-end rounded bg-gray-500 px-3 py-2 text-lg text-gray-200">
           <Controller
             name="text"

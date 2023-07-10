@@ -66,7 +66,7 @@ exports.env = createEnv({
       z.number().int().positive().min(1)
     ),
     // IF REDIS_URL is not set, will not using redis (memory cache)
-    REDIS_URL: z.string().url().optional(),
+    REDIS_URL: z.string().url(),
   },
 
   /**

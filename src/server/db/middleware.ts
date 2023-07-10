@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
-import { type User, type Post, type Prisma } from "@prisma/client";
+import { type Message, type Prisma, type User } from "@prisma/client";
 
-export const softDeleteChangeFind: Prisma.Middleware<User | Post> = async (
+export const softDeleteChangeFind: Prisma.Middleware<User | Message> = async (
   params,
   next
 ) => {
@@ -27,7 +27,7 @@ export const softDeleteChangeFind: Prisma.Middleware<User | Post> = async (
   return await next(params);
 };
 
-export const softDeleteChangeUpdate: Prisma.Middleware<User | Post> = async (
+export const softDeleteChangeUpdate: Prisma.Middleware<User | Message> = async (
   params,
   next
 ) => {
@@ -50,7 +50,7 @@ export const softDeleteChangeUpdate: Prisma.Middleware<User | Post> = async (
   return await next(params);
 };
 
-export const softDeleteChangeDelete: Prisma.Middleware<User | Post> = async (
+export const softDeleteChangeDelete: Prisma.Middleware<User | Message> = async (
   params,
   next
 ) => {
@@ -85,7 +85,7 @@ export const softDeleteChangeDelete: Prisma.Middleware<User | Post> = async (
   return await next(params);
 };
 
-export const versioningChangeUpdate: Prisma.Middleware<User | Post> = async (
+export const versioningChangeUpdate: Prisma.Middleware<User | Message> = async (
   params,
   next
 ) => {

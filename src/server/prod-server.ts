@@ -46,6 +46,7 @@ void app.prepare().then(async () => {
   const io: SocketServer = new Server(server, {
     parser,
     adapter: await getAdapter(),
+    transports: ["websocket"],
   });
 
   setupSocket(io);
