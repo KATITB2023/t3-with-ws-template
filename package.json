@@ -22,7 +22,7 @@
     "postinstall": "yarn generate"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "schema": "./node_modules/@katitb2023/database/schema.prisma"
   },
   "dependencies": {
     "@chakra-ui/react": "^2.7.1",
@@ -30,6 +30,7 @@
     "@emotion/styled": "^11.11.0",
     "@google-cloud/storage": "^6.11.0",
     "@hookform/resolvers": "^3.1.1",
+    "@katitb2023/database": "ssh://git@github.com:KATITB2023/database.git#c181130c17943002f90e10c75a971604b2b5ff22",
     "@next-auth/prisma-adapter": "^1.0.5",
     "@opentelemetry/api": "^1.4.1",
     "@opentelemetry/exporter-trace-otlp-http": "^0.40.0",
@@ -38,8 +39,8 @@
     "@opentelemetry/sdk-trace-base": "^1.14.0",
     "@opentelemetry/sdk-trace-node": "^1.14.0",
     "@opentelemetry/semantic-conventions": "^1.14.0",
-    "@prisma/client": "^4.14.0",
-    "@prisma/instrumentation": "^4.15.0",
+    "@prisma/client": "^5.0.0",
+    "@prisma/instrumentation": "^5.0.0",
     "@socket.io/redis-streams-adapter": "^0.1.0",
     "@t3-oss/env-nextjs": "^0.3.1",
     "@tanstack/react-query": "^4.29.19",
@@ -90,7 +91,7 @@
     "eslint-config-prettier": "^8.8.0",
     "npm-run-all": "^4.1.5",
     "prettier": "^2.8.8",
-    "prisma": "^4.14.0",
+    "prisma": "^5.0.0",
     "tsc-alias": "^1.8.6",
     "tsx": "^3.12.7",
     "typescript": "^5.1.6"
