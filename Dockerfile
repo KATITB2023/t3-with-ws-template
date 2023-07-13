@@ -1,6 +1,6 @@
 ##### DEPENDENCIES
 
-FROM --platform=linux/amd64 node:16-alpine3.17 AS deps
+FROM --platform=linux/amd64 node:18-alpine3.17 AS deps
 RUN apk add --no-cache libc6-compat openssl1.1-compat
 WORKDIR /app
 
@@ -10,7 +10,7 @@ COPY prisma ./
 
 # Install dependencies based on the preferred package manager
 
-COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml\* ./
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
 
 RUN \
   if [ -f yarn.lock ]; then yarn --frozen-lockfile; \
@@ -21,7 +21,7 @@ RUN \
 
 ##### BUILDER
 
-FROM --platform=linux/amd64 node:16-alpine3.17 AS builder
+FROM --platform=linux/amd64 node:18-alpine3.17 AS builder
 ARG DATABASE_URL
 ARG NEXT_PUBLIC_API_URL
 ARG NEXT_PUBLIC_WS_URL
@@ -40,7 +40,7 @@ RUN \
 
 ##### RUNNER
 
-FROM --platform=linux/amd64 node:16-alpine3.17 AS runner
+FROM --platform=linux/amd64 node:18-alpine3.17 AS runner
 WORKDIR /app
 
 ENV NODE_ENV production
