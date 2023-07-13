@@ -1,6 +1,6 @@
-import { type Metrics } from "@prisma/client/runtime";
 import { type NextApiHandler } from "next";
 import { prisma } from "~/server/db";
+import { type Metrics } from "prisma/prisma-client/runtime/library";
 
 const handler: NextApiHandler<Metrics> = async (req, res) => {
   if (req.method !== "GET") {

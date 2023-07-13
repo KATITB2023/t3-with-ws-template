@@ -5,7 +5,12 @@ export const messageRouter = createTRPCRouter({
   infinite: protectedProcedure
     .input(
       z.object({
-        cursor: z.date().optional(),
+        cursor: z
+          .object({
+            date: z.date(),
+            id: z.string().uuid(),
+          })
+          .optional(),
         take: z.number().min(1).max(50).default(10),
         pairId: z.string().uuid(),
       })
@@ -15,7 +20,14 @@ export const messageRouter = createTRPCRouter({
         orderBy: {
           createdAt: "desc",
         },
-        cursor: input.cursor ? { createdAt: input.cursor } : undefined,
+        cursor: input.cursor
+          ? {
+              createdAt_id: {
+                createdAt: input.cursor.date,
+                id: input.cursor.id,
+              },
+            }
+          : undefined,
         take: input.take + 1,
         skip: 0,
         where: {
@@ -37,11 +49,17 @@ export const messageRouter = createTRPCRouter({
       });
 
       const items = page.reverse();
-      let prevCursor: typeof input.cursor = undefined;
+      let prevCursor = undefined;
 
       if (items.length > input.take) {
         const prev = items.shift();
-        prevCursor = prev?.createdAt;
+
+        if (prev) {
+          prevCursor = {
+            id: prev.id,
+            date: prev.createdAt,
+          };
+        }
       }
 
       return {
